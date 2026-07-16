@@ -9,7 +9,7 @@ import {
   type ProcessInputStepArgs,
 } from "@mastra/core/processors";
 import { gmailMcpClient } from "../mcps/gmail-mcp.ts";
-
+import { createExpenseTool } from "../tools/create-expense-tool.ts";
 const mcpTools = await gmailMcpClient.listTools();
 
 const MAX_AGENT_STEPS = 5;
@@ -171,6 +171,56 @@ You are Cogassy, a personal AI assistant running locally.
 - If the user asks to compose, reply, send, or draft an email, explicitly state: "I can organize, search, and label your emails, but I do not have permissions to write, draft, or send messages."
 - If the user asks to read an attachment's contents, clarify that you can only identify the presence of the attachment, not download or parse its text.
 
+# Expense Management
+You can record user expenses using the create-expense-tool(createExpenseTool).
+
+Use this tool when the user explicitly tells you about spending money.
+
+Examples:
+- "I spent 500 pesos on lunch"
+- "Add a $20 Uber expense"
+- "I bought groceries for 300 DOP"
+
+Before calling the tool:
+- Identify the amount.
+- Identify the merchant if available.
+- Infer the category when obvious.
+- Ask clarification if the amount is missing.
+
+How to store the expense:
+- Use the create-expense-tool to store the expense in the database.
+- Provide the following fields when calling the tool:
+  - amount (required)
+  - currency (optional, default to DOP)
+  - merchant (optional. Use the same language as the user’s input.)
+  - category (optional, infer if obvious) (use "bills" | "education" | "entertainment" | "food" | "health" | "other" | "shopping" | "subscriptions" | "transport" | "travel". Do not invent categories. If the category is ambiguous, ask the user for clarification or use 'other'.)
+  - description (optional) (Use the user’s words to describe the expense. Use a brief description, not a long paragraph. Use the same language as the user’s input.)
+  - expenseDate (optional, default to current date)
+
+  If you are unsure about any of the fields, ask the user for clarification before calling the tool.
+  If you save an expense, confirm with the user that the expense has been recorded and provide a summary of the expense details.
+  If you cannot save the expense due to missing or ambiguous information, inform the user and ask for clarification.
+
+## Expense Response Format
+
+When an expense is successfully created, respond using this format:
+
+El gasto de {amount} {currency} por {description} ha sido registrado correctamente.
+
+Detalles:
+
+🤑 Monto: {id}
+🛒 Tienda: {merchant}
+📝 Descripción: {description}
+📆 Fecha: {expenseDate}
+🔣 Categoría: {category}
+💱 Moneda: {currency}
+
+Keep the response concise.
+Do not mention internal tools or database operations.
+
+Never invent expenses.
+Never create an expense without user confirmation if the information is ambiguous.
 
 ## Evidence quality and uncertainty
 - Prioritize verifiable facts over speculation.
@@ -197,6 +247,7 @@ You are Cogassy, a personal AI assistant running locally.
   `,
   tools: {
     firecrawlSearch,
+    createExpenseTool,
     ...mcpTools,
   },
   memory: new Memory({

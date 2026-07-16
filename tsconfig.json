@@ -9,9 +9,12 @@
     "skipLibCheck": true,
     "noEmit": true,
     "outDir": "dist",
-    "allowImportingTsExtensions": true
+    "allowImportingTsExtensions": true,
+    "paths": {
+      "@/*": ["./src/*"]
+    }
   },
   "include": [
     "src/**/*"
-  ]
+,       "drizzle.config.ts"  ]
 }

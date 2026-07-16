@@ -10,9 +10,11 @@
     "start": "caffeinate -ims mastra start",
     "dev:all": "lsof -i :11434 > /dev/null && echo 'Ollama already active natively.' || (ollama serve & sleep 2); caffeinate -ims docker compose up -d",
     "dev:local-telegram": "lsof -i :11434 > /dev/null && echo 'Ollama already running!' || (ollama serve & sleep 3) && npm run dev:telegram",
-    "dev:telegram": "caffeinate -ims node --env-file=.env --experimental-strip-types src/bots/telegram/bot.ts",
-    "start:telegram": "caffeinate -ims node --env-file=.env --experimental-strip-types src/bots/telegram/bot.ts",
-    "start:telegram:docker": "node --experimental-strip-types src/bots/telegram/bot.ts"
+    "dev:telegram": "caffeinate -ims tsx --env-file=.env src/bots/telegram/bot.ts",
+    "start:telegram": "caffeinate -ims tsx --env-file=.env src/bots/telegram/bot.ts",
+    "start:telegram:docker": "tsx src/bots/telegram/bot.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate"
   },
   "keywords": [],
   "author": "",
@@ -30,12 +32,17 @@
     "@mastra/mcp": "^1.14.0",
     "@mastra/memory": "^1.22.2",
     "@mastra/observability": "^1.16.0",
+    "drizzle-orm": "^0.45.2",
     "firecrawl": "^4.30.0",
+    "pg": "^8.22.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/node": "^26.1.1",
+    "@types/pg": "^8.20.0",
+    "drizzle-kit": "^0.31.10",
     "mastra": "^1.18.2",
+    "tsx": "^4.23.1",
     "typescript": "^7.0.2"
   }
 }

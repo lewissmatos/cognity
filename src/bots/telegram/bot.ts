@@ -43,13 +43,11 @@ async function processUpdate(update: TelegramUpdate): Promise<void> {
     });
     await trackTools(stream, chatId);
 
-    process.stdout.write("[Final Result]\n");
-
     const finalResult = await stream.text;
 
-    process.stdout.write(`${finalResult}\n`);
+    process.stdout.write(`[Final Result]: ${finalResult}\n`);
 
-    if (finalResult?.trim()) {
+    if (!!finalResult?.trim()) {
       await sendTelegramMessage(chatId,  `🚀 *Result:*\n${finalResult.trim()}`,);
     };
      
@@ -118,7 +116,6 @@ async function trackTools(
 
   const flushTextBuffer = async () => {
     const cleanText = textBuffer.trim();
-    // TODO: Check this
     if (cleanText) {
       const formattedText = cleanText.replace(/\n+$/, "");
       await sendTelegramMessage(chatId, `💭 *Thinking:* ${formattedText}`);
@@ -180,7 +177,6 @@ async function trackTools(
     if (typedPart.type === "reasoning-delta" && typedPart.payload?.text) {
       const incomingId = typedPart.payload.id ?? "default-reasoning-id";
 
-      // CRITICAL: If the ID changes mid-stream, flush the previous block first!
       if (currentReasoningId !== null && currentReasoningId !== incomingId) {
         process.stdout.write(
           `[Reasoning] ID changed from ${currentReasoningId} to ${incomingId}. Flushing old buffer.\n`,
@@ -246,7 +242,7 @@ async function trackTools(
   }
 
   await flushTextBuffer();
-  await flushReasoningSummaryBlock(); // Catch any loose un-flushed reasoning
+  await flushReasoningSummaryBlock();
 }
 
 if (process.env.TELEGRAM_BOOTSTRAP_ONLY === "1") {
