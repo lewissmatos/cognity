@@ -1,0 +1,21 @@
+services:
+  cognity:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cognity-app
+    environment:
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      FIRECRAWL_API_KEY: ${FIRECRAWL_API_KEY}
+      LOCAL_OLLAMA_URL: http://host.docker.internal:11434/v1
+      TELEGRAM_POLL_TIMEOUT_SECONDS: ${TELEGRAM_POLL_TIMEOUT_SECONDS:-30}
+      TELEGRAM_RETRY_DELAY_MS: ${TELEGRAM_RETRY_DELAY_MS:-1500}
+      TELEGRAM_POLL_START_OFFSET: ${TELEGRAM_POLL_START_OFFSET:-0}
+      GMAIL_MCP_KEYS_PATH: /app/gcp-oauth.keys.json
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./mastra-data:/app/.mastra 
+      - ./gcp-oauth.keys.json:/app/gcp-oauth.keys.json
+      - ~/.gmail-mcp:/root/.gmail-mcp
+    restart: unless-stopped

@@ -1,0 +1,41 @@
+{
+  "name": "cognity",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "caffeinate -ims mastra dev",
+    "build": "mastra build",
+    "start": "caffeinate -ims mastra start",
+    "dev:all": "lsof -i :11434 > /dev/null && echo 'Ollama already active natively.' || (ollama serve & sleep 2); caffeinate -ims docker compose up -d",
+    "dev:local-telegram": "lsof -i :11434 > /dev/null && echo 'Ollama already running!' || (ollama serve & sleep 3) && npm run dev:telegram",
+    "dev:telegram": "caffeinate -ims node --env-file=.env --experimental-strip-types src/bots/telegram/bot.ts",
+    "start:telegram": "caffeinate -ims node --env-file=.env --experimental-strip-types src/bots/telegram/bot.ts",
+    "start:telegram:docker": "node --experimental-strip-types src/bots/telegram/bot.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "dependencies": {
+    "@mastra/core": "^1.50.1",
+    "@mastra/duckdb": "^1.5.1",
+    "@mastra/evals": "^1.5.1",
+    "@mastra/libsql": "^1.15.1",
+    "@mastra/loggers": "^1.2.0",
+    "@mastra/mcp": "^1.14.0",
+    "@mastra/memory": "^1.22.2",
+    "@mastra/observability": "^1.16.0",
+    "firecrawl": "^4.30.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.1",
+    "mastra": "^1.18.2",
+    "typescript": "^7.0.2"
+  }
+}

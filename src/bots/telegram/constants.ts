@@ -1,0 +1,17 @@
+
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+const POLL_TIMEOUT_SECONDS = Number(
+  process.env.TELEGRAM_POLL_TIMEOUT_SECONDS ?? 30,
+);
+const RETRY_DELAY_MS = Number(process.env.TELEGRAM_RETRY_DELAY_MS ?? 1500);
+const TELEGRAM_PARSE_MODE = "Markdown";
+
+const TELEGRAM_API_BASE = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
+
+export {
+  TELEGRAM_BOT_TOKEN,
+  POLL_TIMEOUT_SECONDS,
+  RETRY_DELAY_MS,
+  TELEGRAM_PARSE_MODE,
+  TELEGRAM_API_BASE
+};

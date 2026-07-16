@@ -1,0 +1,12 @@
+node_modules
+.git
+.gitignore
+.env
+.env.*
+.mastra
+dist
+output.txt
+*.db
+*.db-*
+*.duckdb
+*.duckdb.wal
