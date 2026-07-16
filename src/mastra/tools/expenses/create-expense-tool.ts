@@ -3,7 +3,7 @@ import { expenseService } from "@/services/expenses/expense.service.ts";
 import { createTool } from "@mastra/core/tools";
 import { z } from "zod";
 
-const expenseSchema = z.object({
+export const expenseSchema = z.object({
   amount: z
     .number()
     .positive()
@@ -29,7 +29,7 @@ const expenseSchema = z.object({
     .string()
     .optional()
     .describe("A brief description of the expense."),
-  expenseDate: z
+  expenseDate: z.coerce
     .date()
     .optional()
     .describe(
@@ -48,7 +48,7 @@ export const createExpenseTool = createTool({
       .describe("Indicates whether the expense was successfully created."),
     data: expenseSchema
       .extend({
-        createdAt: z
+        createdAt: z.coerce
           .date()
           .describe("The timestamp when the expense record was created."),
       })
@@ -71,8 +71,10 @@ export const createExpenseTool = createTool({
           : undefined,
       });
 
-      process.stdout.write(`✅ Expense created successfully: ${JSON.stringify(expense)}\n`);
-      const {id, ...rest} = expense;
+      process.stdout.write(
+        `✅ Expense created successfully: ${JSON.stringify(expense)}\n`,
+      );
+      const { id, ...rest } = expense;
       return {
         isSuccessful: true,
         data: {

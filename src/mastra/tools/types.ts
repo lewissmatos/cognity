@@ -9,6 +9,7 @@ type ToolName =
   | "gmail_delete_label"
   | "gmail_create_filter_from_template"
   | "createExpenseTool"
+  | "getExpensesTool"
   | (string & {});
 
 export type { ToolName };

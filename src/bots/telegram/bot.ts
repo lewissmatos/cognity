@@ -16,6 +16,7 @@ import {
   toToolStartMessage,
 } from "./utils.ts";
 import type { ToolName } from "../../mastra/tools/types.ts";
+import { MAX_AGENT_STEPS } from "@/mastra/agents/cogassy-agent.ts";
 
 if (!TELEGRAM_BOT_TOKEN) {
   throw new Error("TELEGRAM_BOT_TOKEN is required to run the Telegram bot");
@@ -39,8 +40,9 @@ async function processUpdate(update: TelegramUpdate): Promise<void> {
         thread: threadId,
         resource: resourceId,
       },
-      maxSteps: 5,
+      maxSteps: MAX_AGENT_STEPS,
     });
+
     await trackTools(stream, chatId);
 
     const finalResult = await stream.text;
@@ -48,10 +50,10 @@ async function processUpdate(update: TelegramUpdate): Promise<void> {
     process.stdout.write(`[Final Result]: ${finalResult}\n`);
 
     if (!!finalResult?.trim()) {
-      await sendTelegramMessage(chatId,  `🚀 *Result:*\n${finalResult.trim()}`,);
-    };
-     
-
+      await sendTelegramMessage(chatId, `🚀 *Result:*\n${finalResult.trim()}`);
+    } else {
+      //TODO: Handle case where finalResult is empty or null, maybe send a message to the user indicating that no result was generated.
+    }
   } catch (error) {
     await sendErrorMessage(chatId, error);
   }
@@ -131,8 +133,7 @@ async function trackTools(
     try {
       const agent = mastra.getAgent("summarizeReasoningAgent");
 
-      const summaryResult = await agent.generate(
-        `
+      const prompt = `
           You are an internal text-summarization subroutine for an AI assistant.
           Analyze this raw internal reasoning monologue and summarize the core technical issue or next step into 1-2 (max 3 if required), concise, professional sentences starting with an action verb.
           Remove all internal meta-commentary, code brackets, or personal corrections (like "Wait, let me try...").
@@ -140,8 +141,8 @@ async function trackTools(
           Raw reasoning data: "${rawReasoning}"
           
           Output only the summarized sentence. No pleasantries, no markdown prefix.
-        `,
-      );
+        `;
+      const summaryResult = await agent.generate(prompt);
 
       const cleanSummary = summaryResult.text.trim();
       if (!!cleanSummary) {
@@ -150,7 +151,6 @@ async function trackTools(
           `🧠 *Reasoning Summary:*\n_${cleanSummary}_`,
         );
       }
-
     } catch (e) {
       const safetyFallback =
         rawReasoning.length > 120
