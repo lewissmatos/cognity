@@ -58,6 +58,7 @@ export const getExpensesTool = createTool({
   inputSchema: getExpensesSchema,
   outputSchema: z.object({
     isSuccessful: z.boolean(),
+    message: z.string().optional(),
     data: z.array(
       expenseSchema.extend({
         createdAt: z.coerce
@@ -68,13 +69,23 @@ export const getExpensesTool = createTool({
     ),
   }),
 
-  execute: async ({ query, size }) => {
+  execute: async ({ query, size }, context) => {
+    const userId = context?.agent?.resourceId;
+
     process.stdout.write(
       `${new Date().toISOString()} - Get expenses initiated with input: ${JSON.stringify({ query, size })}\n`,
     );
 
     try {
+      if (!userId) {
+        return {
+          isSuccessful: false,
+          data: [],
+          message: "User ID is required to retrieve expenses.",
+        };
+      }
       const expenses = await expenseService.getExpenses({
+        userId: userId,
         query: {
           category: query?.category,
           merchant: query?.merchant,
@@ -90,7 +101,12 @@ export const getExpensesTool = createTool({
         isSuccessful: true,
         data: expenses.map((expense) => ({
           ...expense,
+          originalAmount: Number(expense.originalAmount),
+          originalCurrency: expense.originalCurrency ?? undefined,
           amount: Number(expense.amount),
+          currency: expense.currency ?? undefined,
+          exchangeRate: Number(expense.exchangeRate ?? "1"),
+          exchangeDate: expense.exchangeDate ?? undefined,
           merchant: expense.merchant ?? undefined,
           category: expense.category ?? undefined,
           description: expense.description ?? undefined,

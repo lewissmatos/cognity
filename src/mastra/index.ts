@@ -12,6 +12,9 @@ import {
 import { summarizeReasoningAgent } from "./agents/summarize-reasoning-agent.ts";
 import { cogassyAgent } from "./agents/cogassy-agent.ts";
 
+const storagePath =
+  process.env.MASTRA_STORAGE_PATH ?? "./mastra-data/mastra.db";
+
 export const mastra = new Mastra({
   workflows: {},
   tools: {},
@@ -20,7 +23,7 @@ export const mastra = new Mastra({
     id: "composite-storage",
     default: new LibSQLStore({
       id: "mastra-storage",
-      url: "file:./mastra.db",
+      url: `file:${storagePath}`,
     }),
     domains: {
       observability: await new DuckDBStore().getStore("observability"),

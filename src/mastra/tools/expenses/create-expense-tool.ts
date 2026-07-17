@@ -2,67 +2,97 @@ import { expenseCategoryEnum } from "@/db/schema/expenses.ts";
 import { expenseService } from "@/services/expenses/expense.service.ts";
 import { createTool } from "@mastra/core/tools";
 import { z } from "zod";
-
 export const expenseSchema = z.object({
-  amount: z
+  originalAmount: z
     .number()
     .positive()
-    .describe("The amount of the expense. Must be a positive number."),
-  currency: z
+    .describe(
+      "The original amount spent by the user. Always use the exact amount provided by the user.",
+    ),
+
+  originalCurrency: z
     .string()
-    .optional()
     .default("DOP")
     .describe(
-      "The currency of the expense. If not provided, use 'DOP' (Dominican Peso) as the default currency.",
+      "The original currency of the expense. Use the currency provided by the user (for example USD, EUR, DOP). If not specified, assume DOP.",
     ),
+
   merchant: z
     .string()
     .optional()
-    .describe("The name of the merchant or vendor where the expense occurred."),
+    .describe("The merchant or place where the expense happened."),
+
   category: z
     .enum(expenseCategoryEnum.enumValues)
     .optional()
-    .describe(
-      "The category of the expense. Must be one of the predefined categories.",
-    ),
+    .describe("The category of the expense."),
+
   description: z
     .string()
     .optional()
-    .describe("A brief description of the expense."),
+    .describe("Additional details about the expense."),
+
   expenseDate: z.coerce
     .date()
     .optional()
     .describe(
-      "The date when the expense occurred in ISO format (YYYY-MM-DD). If not provided, use the current date.",
+      "The date when the expense happened. If not provided, use today's date.",
     ),
 });
 
 export const createExpenseTool = createTool({
   id: "create-expense-tool",
-  description:
-    "A tool to create an expense record in the database. Keep the amount positive, and if the currency is not provided, default to 'DOP'. The output will indicate whether the expense was successfully created and provide the created expense record if successful.",
+  description: `
+Creates a new expense record for the current user.
+
+Rules:
+- Always preserve the original amount and currency provided by the user.
+- Do not manually convert currencies.
+- Currency conversion is handled automatically by the expense service.
+- If the user does not specify a currency, assume DOP.
+- Never create expenses without using this tool.
+`,
   inputSchema: expenseSchema,
   outputSchema: z.object({
-    isSuccessful: z
-      .boolean()
-      .describe("Indicates whether the expense was successfully created."),
+    isSuccessful: z.boolean(),
+    message: z.string().optional(),
     data: expenseSchema
       .extend({
-        createdAt: z.coerce
-          .date()
-          .describe("The timestamp when the expense record was created."),
+        id: z.string(),
+        convertedAmount: z
+          .number()
+          .describe(
+            "The expense amount converted to the system base currency (DOP).",
+          ),
+        amount: z
+          .number()
+          .describe("The converted amount in the base currency (DOP)."),
+        currency: z.string().describe("The base currency. Usually DOP."),
+
+        createdAt: z.coerce.date(),
       })
-      .optional()
-      .describe("The created expense record, if the operation was successful."),
+      .optional(),
   }),
-  execute: async (input) => {
+  execute: async (input, context) => {
+    const userId = context?.agent?.resourceId;
+
     process.stdout.write(
       `${new Date().toISOString()} - Create expense initiated with input: ${JSON.stringify(input)}\n`,
     );
+
     try {
+      if (!userId) {
+        return {
+          isSuccessful: false,
+          message: "User ID is required to create an expense.",
+          data: undefined,
+        };
+      }
+
       const expense = await expenseService.createExpense({
-        amount: input.amount.toString(),
-        currency: input.currency,
+        userId: userId,
+        originalAmount: input.originalAmount.toString(),
+        originalCurrency: input.originalCurrency,
         merchant: input.merchant,
         category: input.category,
         description: input.description,
@@ -74,15 +104,20 @@ export const createExpenseTool = createTool({
       process.stdout.write(
         `✅ Expense created successfully: ${JSON.stringify(expense)}\n`,
       );
-      const { id, ...rest } = expense;
       return {
         isSuccessful: true,
         data: {
-          ...rest,
-          amount: parseFloat(expense.amount),
+          originalAmount: parseFloat(expense.originalAmount),
+          originalCurrency: expense.originalCurrency ?? undefined,
           merchant: expense.merchant ?? undefined,
           category: expense.category ?? undefined,
           description: expense.description ?? undefined,
+          expenseDate: expense.expenseDate,
+          id: expense.id,
+          convertedAmount: parseFloat(expense.amount),
+          currency: expense.currency,
+          createdAt: expense.createdAt,
+          amount: parseFloat(expense.amount),
         },
       };
     } catch (error) {

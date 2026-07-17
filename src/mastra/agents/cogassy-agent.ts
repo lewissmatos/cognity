@@ -11,6 +11,7 @@ import {
 import { gmailMcpClient } from "../mcps/gmail-mcp.ts";
 import { createExpenseTool } from "../tools/expenses/create-expense-tool.ts";
 import { getExpensesTool } from "../tools/expenses/get-expenses-tool.ts";
+import { getUserTool } from "../tools/users/get-user-tool.ts";
 
 const {
   gmail_search_emails,
@@ -20,7 +21,7 @@ const {
   gmail_list_email_labels,
 } = await gmailMcpClient.listTools();
 
-export const MAX_AGENT_STEPS = 5;
+export const MAX_AGENT_STEPS = 10;
 class IncomingMessageLoggerProcessor implements Processor {
   readonly id = "incoming-message-logger";
 
@@ -202,13 +203,15 @@ You can record user expenses using 'createExpenseTool'. Use this tool when the u
 - Infer the category when obvious.
 - Ask clarification if the amount is missing.
 
+### Get user information using 'getUserTool' when you need to retrieve details about a specific user based on their ID or Telegram ID.
+
 ### How to store the expense:
 Provide the following fields when calling the tool:
 - amount (required)
 - currency (optional, default to DOP)
 - merchant (optional. Use the same language as the user's input.)
 - category (optional, infer if obvious) (use "bills" | "education" | "entertainment" | "food" | "health" | "other" | "shopping" | "subscriptions" | "transport" | "travel". Do not invent categories. If the category is ambiguous, ask the user for clarification or use 'other'.)
-- description (optional) (Use the user's words to describe the expense. Use a brief description, not a long paragraph. Use the same language as the user's input.)
+- description (optional) (Use the user's words to describe the expense. Use a brief description, not a long paragraph. IMPORTANT: Use the same language as the user's input.)
 - expenseDate (optional, default to current date)
 
 If you are unsure about any of the fields, ask the user for clarification before calling the tool.
@@ -271,13 +274,13 @@ When presenting expense records, use this format:
 
 📋 *Expenses:*
 
-1) 💰 {amount} {currency}
+1) 💰 {amount} {currency} (if the original currency if different from the system base currency, show both: e.g., 20 USD = 1,165.84 DOP)
    🛒 {merchant}
    📝 {description}
    🏷️ {category}
    📆 {date}
 
-2) 💰 {amount} {currency}
+2) 💰 {amount} {currency}(if the original currency if different from the system base currency, show both: e.g., 20 USD = 1,165.84 DOP)
    🛒 {merchant}
    📝 {description}
    🏷️ {category}
@@ -322,6 +325,7 @@ At the end, provide a summary:
     firecrawlSearch,
     createExpenseTool,
     getExpensesTool,
+    getUserTool,
     ...{
       gmail_search_emails,
       gmail_read_email,

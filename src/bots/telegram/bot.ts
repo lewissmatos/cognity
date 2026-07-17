@@ -17,6 +17,7 @@ import {
 } from "./utils.ts";
 import type { ToolName } from "../../mastra/tools/types.ts";
 import { MAX_AGENT_STEPS } from "@/mastra/agents/cogassy-agent.ts";
+import { userService } from "@/services/expenses/user.service.ts";
 
 if (!TELEGRAM_BOT_TOKEN) {
   throw new Error("TELEGRAM_BOT_TOKEN is required to run the Telegram bot");
@@ -29,8 +30,22 @@ async function processUpdate(update: TelegramUpdate): Promise<void> {
   }
 
   const { chatId, prompt } = parsed;
+
+  const telegramUser = update.message?.from;
+
+  const user = await userService.getOrCreateTelegramUser({
+    telegramId: Number(telegramUser?.id ?? chatId),
+    username: telegramUser?.username,
+    firstName: telegramUser?.first_name,
+    lastName: telegramUser?.last_name,
+  });
+
+  process.stdout.write(
+    `${new Date().toISOString()} - Processing update for chatId=${chatId}, userId=${user?.id}\nfirstName=${telegramUser?.first_name}, lastName=${telegramUser?.last_name}\n`,
+  );
+
   const threadId = `telegram-chat-${chatId}`;
-  const resourceId = `telegram-user-${update.message?.from?.id ?? chatId}`;
+  const resourceId = user?.id;
 
   const agent = mastra.getAgent("cogassyAgent");
 
