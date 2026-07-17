@@ -17,7 +17,7 @@ import {
 } from "./utils.ts";
 import type { ToolName } from "../../mastra/tools/types.ts";
 import { MAX_AGENT_STEPS } from "@/mastra/agents/cogassy-agent.ts";
-import { userService } from "@/services/expenses/user.service.ts";
+import { userService } from "@/services/users/user.service.ts";
 
 if (!TELEGRAM_BOT_TOKEN) {
   throw new Error("TELEGRAM_BOT_TOKEN is required to run the Telegram bot");

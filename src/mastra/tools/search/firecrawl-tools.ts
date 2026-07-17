@@ -9,7 +9,7 @@ type FirecrawlWebResult = {
   url?: string;
 };
 
-function isFirecrawlWebResult(item: unknown): item is FirecrawlWebResult {
+export function isFirecrawlWebResult(item: unknown): item is FirecrawlWebResult {
   return (
     !!item &&
     typeof item === "object" &&

@@ -59,11 +59,6 @@ Rules:
     data: expenseSchema
       .extend({
         id: z.string(),
-        convertedAmount: z
-          .number()
-          .describe(
-            "The expense amount converted to the system base currency (DOP).",
-          ),
         amount: z
           .number()
           .describe("The converted amount in the base currency (DOP)."),
@@ -114,7 +109,6 @@ Rules:
           description: expense.description ?? undefined,
           expenseDate: expense.expenseDate,
           id: expense.id,
-          convertedAmount: parseFloat(expense.amount),
           currency: expense.currency,
           createdAt: expense.createdAt,
           amount: parseFloat(expense.amount),

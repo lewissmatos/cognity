@@ -1,5 +1,5 @@
 import { users } from "@/db/schema/users";
-import { userService } from "@/services/expenses/user.service";
+import { userService } from "@/services/users/user.service";
 import { createTool } from "@mastra/core/tools";
 import { z } from "zod";
 

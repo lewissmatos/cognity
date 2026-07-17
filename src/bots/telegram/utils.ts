@@ -48,12 +48,17 @@ async function sendTelegramMessage(
     }),
   });
 
+  process.stdout.write(
+    `sendTelegramMessage - markdownResponse: ${JSON.stringify(markdownResponse)}\n`,
+  );
+
   if (markdownResponse.ok) {
     return;
   }
 
   const markdownBody = await markdownResponse.text();
 
+  process.stdout.write(`sendTelegramMessage - markdownBody: ${markdownBody}\n`);
   if (
     markdownResponse.status === 400 &&
     markdownBody.toLowerCase().includes("can't parse entities")
