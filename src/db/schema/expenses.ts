@@ -67,4 +67,6 @@ export const expenses = pgTable("expenses", {
   expenseDate: timestamp("expense_date").defaultNow().notNull(),
 
   createdAt: timestamp("created_at").defaultNow().notNull(),
+
+  updatedAt: timestamp("updated_at"),
 });

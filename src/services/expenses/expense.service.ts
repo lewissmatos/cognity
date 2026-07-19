@@ -204,6 +204,7 @@ export class ExpenseService {
               exchangeDate: conversion.exchangeDate,
               amount: conversion.convertedAmount.toString(),
               currency: conversion.convertedCurrency,
+              updatedAt: new Date(),
             }
           : {}),
       })

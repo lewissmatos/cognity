@@ -11,7 +11,7 @@ import {
   isToolEvent,
   sendErrorMessage,
   sendTelegramMessage,
-  toAgentInput,
+  telegramToConversationInput,
   toToolDoneMessage,
   toToolStartMessage,
 } from "./utils.ts";
@@ -24,7 +24,7 @@ if (!TELEGRAM_BOT_TOKEN) {
 }
 
 async function processUpdate(update: TelegramUpdate): Promise<void> {
-  const parsed = toAgentInput(update);
+  const parsed = telegramToConversationInput(update);
   if (!parsed) {
     return;
   }
@@ -47,10 +47,10 @@ async function processUpdate(update: TelegramUpdate): Promise<void> {
   const threadId = `telegram-chat-${chatId}`;
   const resourceId = user?.id;
 
-  const agent = mastra.getAgent("cogassyAgent");
+  const cogassyAgent = mastra.getAgent("cogassyAgent");
 
   try {
-    const stream = await agent.stream(prompt, {
+    const stream = await cogassyAgent.stream(prompt, {
       memory: {
         thread: threadId,
         resource: resourceId,
@@ -67,7 +67,10 @@ async function processUpdate(update: TelegramUpdate): Promise<void> {
     if (!!finalResult?.trim()) {
       await sendTelegramMessage(chatId, `🚀 *Result:*\n${finalResult.trim()}`);
     } else {
-      //TODO: Handle case where finalResult is empty or null, maybe send a message to the user indicating that no result was generated.
+      const briefSummary = await cogassyAgent.generate(
+        "The agent did not produce any output. Please provide a brief summary of the issue or next steps.",
+      );
+      await sendTelegramMessage(chatId, `🚀 *Brief Summary:*\n${briefSummary}`);
     }
   } catch (error) {
     await sendErrorMessage(chatId, error);
@@ -146,7 +149,9 @@ async function trackTools(
     if (!rawReasoning) return;
 
     try {
-      const agent = mastra.getAgent("summarizeReasoningAgent");
+      const summarizeReasoningAgent = mastra.getAgent(
+        "summarizeReasoningAgent",
+      );
 
       const prompt = `
           You are an internal text-summarization subroutine for an AI assistant.
@@ -157,7 +162,7 @@ async function trackTools(
           
           Output only the summarized sentence. No pleasantries, no markdown prefix.
         `;
-      const summaryResult = await agent.generate(prompt);
+      const summaryResult = await summarizeReasoningAgent.generate(prompt);
 
       const cleanSummary = summaryResult.text.trim();
       if (!!cleanSummary) {

@@ -1,0 +1,1 @@
+ALTER TABLE "expenses" ADD COLUMN "updated_at" timestamp;

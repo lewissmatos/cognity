@@ -114,7 +114,7 @@ function isToolEvent(part: unknown): part is StreamToolEvent {
   return "type" in part;
 }
 
-function toAgentInput(
+function telegramToConversationInput(
   update: TelegramUpdate,
 ): { chatId: string; prompt: string } | null {
   const message = update.message;
@@ -165,7 +165,7 @@ export {
   normalizeMarkdownForTelegram,
   sendTelegramMessage,
   isToolEvent,
-  toAgentInput,
+  telegramToConversationInput,
   toToolStartMessage,
   toToolDoneMessage,
   sendErrorMessage,
