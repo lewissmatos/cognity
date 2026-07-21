@@ -3,7 +3,6 @@ import {
   numeric,
   pgEnum,
   pgTable,
-  text,
   timestamp,
   uuid,
   varchar,
@@ -39,7 +38,16 @@ export const budgets = pgTable("budgets", {
 
   period: budgetPeriodEnum("period").notNull(),
 
-  startDate: timestamp("start_date").notNull(),
+  startDate: timestamp("start_date")
+    .default(
+      (function () {
+        const currentMonthStartDate = new Date();
+        currentMonthStartDate.setDate(1);
+        currentMonthStartDate.setHours(0, 0, 0, 0);
+        return currentMonthStartDate;
+      })(),
+    )
+    .notNull(),
 
   endDate: timestamp("end_date"),
 

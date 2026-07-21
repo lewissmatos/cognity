@@ -46,10 +46,11 @@ export const searchExpenseSchema = z
 export const getExpensesTool = createTool({
   id: "get-expenses-tool",
   description: `A tool to retrieve expense records from the database. Use this when the user wants to view, search, or analyze their expenses.
-    You can filter expenses by category, merchant, and date range. The output will indicate whether the retrieval was successful and provide the list of expenses if successful.
-    Use this tool whenever the user asks to view, list, search, filter, summarize, or analyze existing expenses.
-    The output will include the amount, currency, merchant, category, description, expense date, and creation timestamp for each expense record.
-    The input parameters are optional, and if not provided, the tool will return all expenses.
+   
+    Use this whenever the user wants to:
+    - view their expenses
+    - search for specific expenses
+    - analyze their spending patterns
     `,
   inputSchema: z
     .object({

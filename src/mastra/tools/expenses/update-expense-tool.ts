@@ -58,13 +58,12 @@ export const updateExpenseTool = createTool({
   id: "update-expense-tool",
   description: `
 Updates an existing expense record for the current user.
-Rules:
-- Preserve the existing original amount and original currency unless the user explicitly requests changing them.
-- Never overwrite originalAmount or originalCurrency accidentally when updating unrelated fields.
-- Do not manually convert currencies.
-- Currency conversion is handled automatically by the expense service.
-- If the user does not specify a currency, assume DOP.
-- Never update expenses without using this tool.
+
+Use this whenever the user wants to:
+- update an expense
+- modify an expense
+- change an expense
+- correct an expense
 `,
   inputSchema: z.object({
     searchCriteria: searchExpenseSchema

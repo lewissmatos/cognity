@@ -10,12 +10,11 @@ export const deleteExpenseTool = createTool({
   description: `
 Deletes an existing expense record for the current user.
 
-Rules:
-- Always use this tool when the user requests deleting an expense.
-- Identify the expense using the provided search criteria.
-- Never require the user to provide the internal expense ID.
-- Never delete an expense that does not belong to the current user.
-- If multiple expenses match the criteria, do not guess. Ask the user for clarification.
+Use this whenever the user wants to:
+- delete an expense
+- remove an expense
+- erase an expense
+- discard an expense
 `,
   inputSchema: z.object({
     searchCriteria: searchExpenseSchema

@@ -8,10 +8,11 @@ export const getSingleExpenseTool = createTool({
   id: "get-single-expense-tool",
   description: `
 Retrieves a single expense record for the current user.
-Rules:
-- Always use the tool to retrieve an expense.
-- Use the expense ID to identify which expense to retrieve.
-- If the expense ID does not exist or does not belong to the user, return an error message.
+
+Use this whenever the user wants to:
+- view a specific expense
+- get details of an expense
+- check an expense record
 `,
   inputSchema: z.object({
     searchCriteria: searchExpenseSchema,

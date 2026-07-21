@@ -1,6 +1,7 @@
 import { TELEGRAM_API_BASE, TELEGRAM_PARSE_MODE } from "./constants.ts";
 import type { StreamToolEvent, TelegramUpdate } from "./types.ts";
 import type { ToolName } from "../../mastra/tools/types.ts";
+import { userService } from "@/services/users/user.service.ts";
 
 function normalizeMarkdownForTelegram(text: string): string {
   const normalizedText = text.replace(/\r\n?/g, "\n").trim();

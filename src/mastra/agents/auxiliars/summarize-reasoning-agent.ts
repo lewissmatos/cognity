@@ -1,5 +1,5 @@
 import { Agent } from "@mastra/core/agent";
-import { defaultModel } from "../../constants.ts";
+import { defaultModel } from "../../../constants.ts";
 
 export const summarizeReasoningAgent = new Agent({
     id: "summarize-reasoning-agent",

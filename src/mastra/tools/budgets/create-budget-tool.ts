@@ -48,20 +48,6 @@ Use this whenever the user wants to:
 - limit spending
 - establish a spending limit
 
-Examples:
-
-"Set a monthly food budget of 15,000 pesos."
-
-"My entertainment budget is 5,000."
-
-"I only want to spend 300 dollars per month on shopping."
-
-Rules:
-
-- Never create a budget without user intent.
-- If currency is omitted, assume DOP.
-- If startDate is omitted, use today's date.
-- Never overwrite an existing budget. Use the update budget tool instead.
 `,
 
   inputSchema: budgetSchema,

@@ -1,4 +1,3 @@
-import { MastraModelOutput } from "@mastra/core/stream";
 import { mastra } from "../../mastra/index.ts";
 import {
   POLL_TIMEOUT_SECONDS,
@@ -16,8 +15,9 @@ import {
   toToolStartMessage,
 } from "./utils.ts";
 import type { ToolName } from "../../mastra/tools/types.ts";
-import { MAX_AGENT_STEPS } from "@/mastra/agents/cogassy/processors.ts";
 import { userService } from "@/services/users/user.service.ts";
+import { MastraModelOutput } from '@mastra/core/stream';
+import { MAX_AGENT_STEPS } from '../../mastra/agents/processors';
 
 if (!TELEGRAM_BOT_TOKEN) {
   throw new Error("TELEGRAM_BOT_TOKEN is required to run the Telegram bot");
@@ -70,11 +70,16 @@ async function processUpdate(update: TelegramUpdate): Promise<void> {
   const cogassyAgent = mastra.getAgent("cogassyAgent");
 
   try {
-    const stream = await cogassyAgent.stream(prompt, {
-      memory: {
-        thread: threadId,
-        resource: resourceId,
+    const memory = {
+      thread: {
+        id: threadId,
+        resourceId,
       },
+      resource: resourceId,
+    };
+    
+    const stream = await cogassyAgent.stream(prompt, {
+      memory,
       maxSteps: MAX_AGENT_STEPS,
     });
 
@@ -89,8 +94,9 @@ async function processUpdate(update: TelegramUpdate): Promise<void> {
     } else {
       const briefSummary = await cogassyAgent.generate(
         "The agent did not produce any output. Please provide a brief summary of the issue or next steps.",
+        { memory },
       );
-      await sendTelegramMessage(chatId, `${briefSummary}`);
+      await sendTelegramMessage(chatId, `${briefSummary.text.trim()}`);
     }
   } catch (error) {
     await sendErrorMessage(chatId, error);

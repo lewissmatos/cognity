@@ -45,12 +45,11 @@ export const createExpenseTool = createTool({
   description: `
 Creates a new expense record for the current user.
 
-Rules:
-- Always preserve the original amount and currency provided by the user.
-- Do not manually convert currencies.
-- Currency conversion is handled automatically by the expense service.
-- If the user does not specify a currency, assume DOP.
-- Never create expenses without using this tool.
+Use this whenever the user wants to:
+- log a new expense
+- add a new expense
+- record a new expense
+- track a new expense
 `,
   inputSchema: expenseSchema,
   outputSchema: z.object({
