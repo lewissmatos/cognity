@@ -1,7 +1,8 @@
 import { expenseService } from "@/services/expenses/expense.service.ts";
 import { createTool } from "@mastra/core/tools";
 import { z } from "zod";
-import { mutateExpenseSchema, searchExpenseSchema } from "./update-expense-tool";
+import { mutateExpenseSchema } from "./update-expense-tool";
+import { searchExpenseSchema } from "./get-expenses-tool";
 
 export const deleteExpenseTool = createTool({
   id: "delete-expense-tool",
@@ -17,7 +18,18 @@ Rules:
 - If multiple expenses match the criteria, do not guess. Ask the user for clarification.
 `,
   inputSchema: z.object({
-    searchCriteria: searchExpenseSchema,
+    searchCriteria: searchExpenseSchema
+      .refine(
+        (criteria) =>
+          Object.values(criteria).some((value) => value !== undefined),
+        {
+          message:
+            "At least one search criteria must be provided to identify the expense.",
+        },
+      )
+      .describe(
+        "Criteria to identify the expense to update. At least one field must be provided. They work as AND conditions to find the expense.",
+      ),
   }),
   outputSchema: z.object({
     isSuccessful: z.boolean(),

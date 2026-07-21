@@ -2,8 +2,47 @@ import { expenseService } from "@/services/expenses/expense.service.ts";
 import { createTool } from "@mastra/core/tools";
 import { z } from "zod";
 import { expenseSchema } from "./create-expense-tool";
-import { searchExpenseSchema } from "./update-expense-tool";
+import { expenseCategoryEnum } from "@/db/schema/expenses";
 
+export const searchExpenseSchema = z
+  .object({
+    description: z
+      .string()
+      .optional()
+      .describe("The description of the expense to identify it."),
+    merchant: z
+      .string()
+      .optional()
+      .describe("The merchant of the expense to identify it."),
+    category: z
+      .enum(expenseCategoryEnum.enumValues)
+      .optional()
+      .describe("The category of the expense to identify it."),
+    amount: z
+      .number()
+      .optional()
+      .describe("The amount of the expense to identify it."),
+    currency: z
+      .string()
+      .optional()
+      .describe("The currency of the expense to identify it."),
+    expenseDate: z.coerce
+      .date()
+      .optional()
+      .describe("The date of the expense to identify it."),
+    originalAmount: z
+      .number()
+      .optional()
+      .describe("The original amount of the expense to identify it."),
+    originalCurrency: z
+      .string()
+      .optional()
+      .describe("The original currency of the expense to identify it."),
+    exchangeDate: z.coerce
+      .date()
+      .optional()
+      .describe("The exchange date of the expense to identify it."),
+  })
 export const getExpensesTool = createTool({
   id: "get-expenses-tool",
   description: `A tool to retrieve expense records from the database. Use this when the user wants to view, search, or analyze their expenses.
@@ -27,7 +66,7 @@ export const getExpensesTool = createTool({
           .describe(
             "The end date for filtering expenses. Only expenses on or before this date will be returned.",
           ),
-      }),
+      }).optional()
     })
     .extend({
       size: z

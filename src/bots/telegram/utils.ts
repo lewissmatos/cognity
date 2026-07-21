@@ -48,10 +48,6 @@ async function sendTelegramMessage(
     }),
   });
 
-  process.stdout.write(
-    `sendTelegramMessage - markdownResponse: ${JSON.stringify(markdownResponse)}\n`,
-  );
-
   if (markdownResponse.ok) {
     return;
   }
@@ -88,23 +84,11 @@ async function sendTelegramMessage(
   );
 }
 
-function toToolStartMessage(toolName: ToolName): string {
-  switch (toolName) {
-    case "firecrawlSearch":
-      return "🔎 I’m searching the web for fresh information…";
-    default:
-      return `⚙️ I’m using *${toolName}* to process your request…`;
-  }
-}
+const toToolStartMessage = (toolName: ToolName): string =>
+  `I’m using *${toolName}* to process your request…`;
 
-function toToolDoneMessage(toolName: ToolName): string {
-  switch (toolName) {
-    case "firecrawlSearch":
-      return "✅ Web search completed. I’m now preparing your answer.";
-    default:
-      return `✅ Finished *${toolName}*. I’m now preparing your answer.`;
-  }
-}
+const toToolDoneMessage = (toolName: ToolName): string =>
+  `Finished *${toolName}*. I’m now preparing your answer.`;
 
 function isToolEvent(part: unknown): part is StreamToolEvent {
   if (!part || typeof part !== "object") {
@@ -159,7 +143,7 @@ async function sendErrorMessage(chatId: string, error: unknown): Promise<void> {
     chatId,
     "I ran into an internal error while processing your message. Please try again in a moment.",
   );
-};
+}
 
 export {
   normalizeMarkdownForTelegram,

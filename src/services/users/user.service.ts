@@ -1,5 +1,6 @@
 import { db } from "@/db/index.ts";
 import { users } from "@/db/schema/users";
+import { eq } from "drizzle-orm";
 
 export type CreateUserInput = typeof users.$inferInsert;
 export class UserService {
@@ -25,21 +26,20 @@ export class UserService {
     return user;
   }
 
- async getUserByTelegramId(telegramId: number) {
-  try {
-    const user = await db.query.users.findFirst({
-      where: (users, { eq }) => eq(users.telegramId, telegramId),
-    });
+  async getUserByTelegramId(telegramId: number) {
+    try {
+      const user = await db.query.users.findFirst({
+        where: (users, { eq }) => eq(users.telegramId, telegramId),
+      });
 
-    return user;
-  } catch (error) {
-    console.error("GET USER ERROR:", error);
-    throw error;
+      return user;
+    } catch (error) {
+      console.error("GET USER ERROR:", error);
+      throw error;
+    }
   }
-}
 
   async getOrCreateTelegramUser(data: CreateUserInput) {
-   
     const user = await this.getUserByTelegramId(data.telegramId ?? "");
 
     if (!user) {
@@ -48,6 +48,29 @@ export class UserService {
     }
 
     return user;
+  }
+
+  async resetUserChatVersion(userId: string) {
+    try {
+      const user = await this.getUser(userId);
+
+      if (!user) {
+        throw new Error(`User with ID ${userId} not found`);
+      }
+
+      const [updatedUser] = await db
+        .update(users)
+        .set({
+          chatVersion: user.chatVersion + 1,
+        })
+        .where(eq(users.id, userId))
+        .returning();
+
+      return updatedUser;
+    } catch (error) {
+      console.error("GET USER ERROR:", error);
+      throw error;
+    }
   }
 }
 

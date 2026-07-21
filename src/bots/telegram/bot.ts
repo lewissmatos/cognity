@@ -30,7 +30,6 @@ async function processUpdate(update: TelegramUpdate): Promise<void> {
   }
 
   const { chatId, prompt } = parsed;
-
   const telegramUser = update.message?.from;
 
   const user = await userService.getOrCreateTelegramUser({
@@ -40,11 +39,32 @@ async function processUpdate(update: TelegramUpdate): Promise<void> {
     lastName: telegramUser?.last_name,
   });
 
+  const text = update.message?.text?.trim() ?? "";
+  if (text === "/newchat" || text === "/reset") {
+    try {
+      const currentStatus = await userService.resetUserChatVersion(user.id);
+
+      process.stdout.write(
+        `${new Date().toISOString()} - Resetting chat for userId=${user.id}, chatId=${chatId}, newChatVersion=${currentStatus.chatVersion}\n`,
+      );
+      await sendTelegramMessage(
+        chatId,
+        "✨\n".repeat(3) +
+          `He olvidado todo lo anterior.\n Cuentame *${currentStatus.fullName}* ¿En qué puedo ayudarte?`,
+      );
+      return;
+    } catch (error) {
+      await sendErrorMessage(chatId, error);
+      return;
+    }
+  }
+
   process.stdout.write(
-    `${new Date().toISOString()} - Processing update for chatId=${chatId}, userId=${user?.id}\nfirstName=${telegramUser?.first_name}, lastName=${telegramUser?.last_name}\n`,
+    `${new Date().toISOString()} - Processing update for chatId=${chatId}, userId=${user?.id}\name=${user?.fullName}\n`,
   );
 
-  const threadId = `telegram-chat-${chatId}`;
+  const chatVersion = user?.chatVersion ?? 1;
+  const threadId = `telegram-chat-${chatId}-v${chatVersion}`;
   const resourceId = user?.id;
 
   const cogassyAgent = mastra.getAgent("cogassyAgent");
@@ -65,12 +85,12 @@ async function processUpdate(update: TelegramUpdate): Promise<void> {
     process.stdout.write(`[Final Result]: ${finalResult}\n`);
 
     if (!!finalResult?.trim()) {
-      await sendTelegramMessage(chatId, `🚀 *Result:*\n${finalResult.trim()}`);
+      await sendTelegramMessage(chatId, `${finalResult.trim()}`);
     } else {
       const briefSummary = await cogassyAgent.generate(
         "The agent did not produce any output. Please provide a brief summary of the issue or next steps.",
       );
-      await sendTelegramMessage(chatId, `🚀 *Brief Summary:*\n${briefSummary}`);
+      await sendTelegramMessage(chatId, `${briefSummary}`);
     }
   } catch (error) {
     await sendErrorMessage(chatId, error);
@@ -79,7 +99,6 @@ async function processUpdate(update: TelegramUpdate): Promise<void> {
 
 async function pollTelegramUpdates(): Promise<void> {
   let offset = Number(process.env.TELEGRAM_POLL_START_OFFSET ?? 0);
-
   process.stdout.write(
     `${new Date().toISOString()} - Telegram bot polling started with timeout=${POLL_TIMEOUT_SECONDS}s\n`,
   );
@@ -166,17 +185,14 @@ async function trackTools(
 
       const cleanSummary = summaryResult.text.trim();
       if (!!cleanSummary) {
-        await sendTelegramMessage(
-          chatId,
-          `🧠 *Reasoning Summary:*\n_${cleanSummary}_`,
-        );
+        await sendTelegramMessage(chatId, `_${cleanSummary}_`);
       }
     } catch (e) {
       const safetyFallback =
         rawReasoning.length > 120
           ? `${rawReasoning.slice(0, 120)}...`
           : rawReasoning;
-      await sendTelegramMessage(chatId, `🧠 *Reasoning:* ${safetyFallback}`);
+      await sendTelegramMessage(chatId, `${safetyFallback}`);
     } finally {
       reasoningBuffer = ""; // Reset buffer completely
       currentReasoningId = null; // Clear active ID tracking
@@ -188,13 +204,43 @@ async function trackTools(
     payload?: {
       text?: string;
       id?: string;
+      toolCallId?: string;
+      toolName?: ToolName;
+      args?: Record<string, unknown>;
     };
   };
 
   for await (const part of stream.fullStream) {
     const typedPart = part as unknown as MastraStreamPart;
 
-    if (typedPart.type === "reasoning-delta" && typedPart.payload?.text) {
+    if (!isToolEvent(part)) {
+      continue;
+    }
+
+    const { payload, type } = typedPart;
+
+    const toolCallId = payload?.toolCallId;
+    const toolName = payload?.toolName;
+
+    if (
+      ["tool-call", "tool-call-delta"].includes(part.type) &&
+      toolCallId &&
+      toolName &&
+      !notifiedToolStarts.has(toolCallId)
+    ) {
+      process.stdout.write(
+        `[Tool Call]: ${JSON.stringify(typedPart, null, 2)}\n`,
+      );
+
+      await flushTextBuffer();
+
+      notifiedToolStarts.add(toolCallId);
+      inProgressToolCalls.set(toolCallId, toolName);
+      await sendTelegramMessage(chatId, toToolStartMessage(toolName));
+      continue;
+    }
+
+    if (type === "reasoning-delta" && !!typedPart.payload?.text) {
       const incomingId = typedPart.payload.id ?? "default-reasoning-id";
 
       if (currentReasoningId !== null && currentReasoningId !== incomingId) {
@@ -209,42 +255,16 @@ async function trackTools(
       continue;
     }
 
-    if (part.type === "reasoning-end") {
+    if (type === "reasoning-end") {
       await flushReasoningSummaryBlock();
       continue;
     }
 
-    if (!isToolEvent(part)) {
-      continue;
-    }
-
-    const { toolCallId, toolName } =
-      (part as {
-        toolCallId?: string;
-        toolName?: ToolName;
-      }) ||
-      part?.payload ||
-      {};
-
-    if (part.type === "start") {
+    if (type === "start") {
       await sendTelegramMessage(chatId, "🤖💭…");
     }
 
-    if (
-      ["tool-call", "tool-call-delta"].includes(part.type) &&
-      toolCallId &&
-      toolName &&
-      !notifiedToolStarts.has(toolCallId)
-    ) {
-      await flushTextBuffer();
-
-      notifiedToolStarts.add(toolCallId);
-      inProgressToolCalls.set(toolCallId, toolName);
-      await sendTelegramMessage(chatId, toToolStartMessage(toolName));
-      continue;
-    }
-
-    if (part.type === "tool-result" && toolCallId) {
+    if (type === "tool-result" && toolCallId) {
       const resolvedToolName = toolName ?? inProgressToolCalls.get(toolCallId);
 
       if (!resolvedToolName) {

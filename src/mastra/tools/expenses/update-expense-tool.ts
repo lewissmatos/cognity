@@ -3,56 +3,7 @@ import { createTool } from "@mastra/core/tools";
 import { z } from "zod";
 import { expenseSchema } from "./create-expense-tool";
 import { expenseCategoryEnum } from "@/db/schema/expenses";
-
-export const searchExpenseSchema = z
-  .object({
-    description: z
-      .string()
-      .optional()
-      .describe("The description of the expense to identify it."),
-    merchant: z
-      .string()
-      .optional()
-      .describe("The merchant of the expense to identify it."),
-    category: z
-      .enum(expenseCategoryEnum.enumValues)
-      .optional()
-      .describe("The category of the expense to identify it."),
-    amount: z
-      .number()
-      .optional()
-      .describe("The amount of the expense to identify it."),
-    currency: z
-      .string()
-      .optional()
-      .describe("The currency of the expense to identify it."),
-    expenseDate: z.coerce
-      .date()
-      .optional()
-      .describe("The date of the expense to identify it."),
-    originalAmount: z
-      .number()
-      .optional()
-      .describe("The original amount of the expense to identify it."),
-    originalCurrency: z
-      .string()
-      .optional()
-      .describe("The original currency of the expense to identify it."),
-    exchangeDate: z.coerce
-      .date()
-      .optional()
-      .describe("The exchange date of the expense to identify it."),
-  })
-  .refine(
-    (criteria) => Object.values(criteria).some((value) => value !== undefined),
-    {
-      message:
-        "At least one search criteria must be provided to identify the expense.",
-    },
-  )
-  .describe(
-    "Criteria to identify the expense to update. At least one field must be provided. They work as AND conditions to find the expense.",
-  );
+import { searchExpenseSchema } from "./get-expenses-tool";
 
 export const mutateExpenseSchema = z
   .object({
@@ -116,7 +67,18 @@ Rules:
 - Never update expenses without using this tool.
 `,
   inputSchema: z.object({
-    searchCriteria: searchExpenseSchema,
+    searchCriteria: searchExpenseSchema
+      .refine(
+        (criteria) =>
+          Object.values(criteria).some((value) => value !== undefined),
+        {
+          message:
+            "At least one search criteria must be provided to identify the expense.",
+        },
+      )
+      .describe(
+        "Criteria to identify the expense to update. At least one field must be provided. They work as AND conditions to find the expense.",
+      ),
     updateData: mutateExpenseSchema,
   }),
   outputSchema: z.object({

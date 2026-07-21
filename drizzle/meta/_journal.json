@@ -15,6 +15,13 @@
       "when": 1784338774691,
       "tag": "0001_handy_boomerang",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1784474647260,
+      "tag": "0002_shallow_shard",
+      "breakpoints": true
     }
   ]
 }

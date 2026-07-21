@@ -2,7 +2,7 @@ import { expenseService } from "@/services/expenses/expense.service.ts";
 import { createTool } from "@mastra/core/tools";
 import { z } from "zod";
 import { expenseSchema } from "./create-expense-tool";
-import { searchExpenseSchema } from "./update-expense-tool";
+import { searchExpenseSchema } from "./get-expenses-tool";
 
 export const getSingleExpenseTool = createTool({
   id: "get-single-expense-tool",

@@ -1,10 +1,10 @@
 import { createTool } from "@mastra/core/tools";
 import { z } from "zod";
-import { searchExpenseSchema } from "../expenses/update-expense-tool";
 import { expenseSchema } from "../expenses/create-expense-tool";
 import { expenseService } from "@/services/expenses/expense.service";
 import { Firecrawl } from "firecrawl";
 import { isFirecrawlWebResult } from "./firecrawl-tools";
+import { searchExpenseSchema } from "../expenses/get-expenses-tool";
 
 const firecrawl = new Firecrawl({ apiKey: process.env.FIRECRAWL_API_KEY! });
 
@@ -21,10 +21,19 @@ Use this when the user wants:
 
 The tool retrieves the expense information first and then searches the web.
 `,
-
   inputSchema: z.object({
-    expenseCriteria: searchExpenseSchema,
-
+    expenseCriteria: searchExpenseSchema
+      .refine(
+        (criteria) =>
+          Object.values(criteria).some((value) => value !== undefined),
+        {
+          message:
+            "At least one search criteria must be provided to identify the expense.",
+        },
+      )
+      .describe(
+        "Criteria to identify the expense to update. At least one field must be provided. They work as AND conditions to find the expense.",
+      ),
     maxResults: z
       .number()
       .default(5)
