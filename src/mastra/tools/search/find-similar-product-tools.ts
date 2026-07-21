@@ -2,11 +2,8 @@ import { createTool } from "@mastra/core/tools";
 import { z } from "zod";
 import { expenseSchema } from "../expenses/create-expense-tool";
 import { expenseService } from "@/services/expenses/expense.service";
-import { Firecrawl } from "firecrawl";
-import { isFirecrawlWebResult } from "./firecrawl-tools";
 import { searchExpenseSchema } from "../expenses/get-expenses-tool";
-
-const firecrawl = new Firecrawl({ apiKey: process.env.FIRECRAWL_API_KEY! });
+import { TavilySearchResponse, tavilySearchTool } from "./tavily-search-tool";
 
 export const findSimilarProductsTool = createTool({
   id: "find-similar-products-tool",
@@ -34,10 +31,6 @@ The tool retrieves the expense information first and then searches the web.
       .describe(
         "Criteria to identify the expense to update. At least one field must be provided. They work as AND conditions to find the expense.",
       ),
-    maxResults: z
-      .number()
-      .default(5)
-      .describe("Maximum number of similar products to return."),
   }),
 
   outputSchema: z.object({
@@ -52,6 +45,14 @@ The tool retrieves the expense information first and then searches the web.
           .nullable()
           .describe("The title or name of the similar product."),
         url: z.string(),
+        content: z
+          .string()
+          .optional()
+          .describe("The content or description of the similar product."),
+        publishedAt: z
+          .string()
+          .optional()
+          .describe("The publication date of the similar product."),
       }),
     ),
   }),
@@ -59,6 +60,7 @@ The tool retrieves the expense information first and then searches the web.
   execute: async (input, context) => {
     const userId = context?.agent?.resourceId;
 
+    const { expenseCriteria } = input;
     if (!userId) {
       return {
         isSuccessful: false,
@@ -70,9 +72,9 @@ The tool retrieves the expense information first and then searches the web.
     const expense = await expenseService.getExpense({
       userId,
       query: {
-        ...input.expenseCriteria,
-        amount: input.expenseCriteria.amount?.toString(),
-        originalAmount: input.expenseCriteria.originalAmount?.toString(),
+        ...expenseCriteria,
+        amount: expenseCriteria.amount?.toString(),
+        originalAmount: expenseCriteria.originalAmount?.toString(),
       },
     });
 
@@ -88,14 +90,39 @@ The tool retrieves the expense information first and then searches the web.
     const query = `
       Similar products to:
       ${expense.description}
-      ${expense.merchant}
+      ${expense.merchant || ""}
       category:${expense.category}
     `;
 
-    const results = await firecrawl.search(query, {
-      limit: input.maxResults,
-    });
+    const searchResponse = await tavilySearchTool?.execute?.(
+      {
+        query,
+        options: {
+          maxResults: 5,
+          topic: "general",
+        },
+      },
+      context,
+    );
 
+
+    if (!searchResponse) {
+      return {
+        isSuccessful: false,
+        message: "Failed to retrieve similar products.",
+        expense: {
+          ...expense,
+          originalAmount: Number(expense.originalAmount),
+          amount: Number(expense.amount),
+          merchant: expense.merchant ?? undefined,
+          category: expense.category ?? undefined,
+          description: expense.description ?? undefined,
+        },
+        products: [],
+      };
+    }
+
+    const products = (searchResponse as TavilySearchResponse).results ?? [];
     return {
       isSuccessful: true,
       expense: {
@@ -106,21 +133,15 @@ The tool retrieves the expense information first and then searches the web.
         category: expense.category ?? undefined,
         description: expense.description ?? undefined,
       },
-      products: (results.web ?? [])
+      products: products
         .map((item) => {
-          if (!isFirecrawlWebResult(item)) {
-            return null;
-          }
-
           return {
             title: item.title ?? null,
             url: item.url,
+            content: item.content ?? null,
           };
         })
-        .filter(
-          (item): item is { title: string | null; url: string } =>
-            item !== null,
-        ),
+        .filter((item) => item !== null),
     };
   },
 });

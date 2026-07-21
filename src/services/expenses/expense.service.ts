@@ -138,7 +138,8 @@ export class ExpenseService {
   }
 
   async createExpense(data: CreateExpenseInput) {
-    const conversion = await currencyService.convertToBaseCurrency(
+   try {
+     const conversion = await currencyService.convertToBaseCurrency(
       Number(data.originalAmount),
       data.originalCurrency ?? "DOP",
     );
@@ -148,6 +149,14 @@ export class ExpenseService {
     if (!user) {
       throw new Error(`User with id ${data.userId} not found`);
     }
+
+    if (!expenseCategoryEnum.enumValues.includes(data.category)) {
+      throw new Error(
+        `Invalid category: ${data.category}. Must be one of: ${expenseCategoryEnum.enumValues.join(
+          ", ",
+        )}`,
+      );
+    };
 
     const [expense] = await db
       .insert(expenses)
@@ -169,6 +178,10 @@ export class ExpenseService {
       .returning();
 
     return expense;
+    } catch (error) {
+      console.error("CREATE EXPENSE ERROR:", error);
+      throw error;
+    }
   }
 
   async deleteExpense(expenseId: string) {

@@ -10,7 +10,7 @@ import {
   SensitiveDataFilter,
 } from "@mastra/observability";
 import { summarizeReasoningAgent } from "./agents/summarize-reasoning-agent.ts";
-import { cogassyAgent } from "./agents/cogassy-agent.ts";
+import { cogassyAgent } from "./agents/cogassy/cogassy-agent.ts";
 
 const storagePath =
   process.env.MASTRA_STORAGE_PATH ?? "./mastra-data/mastra.db";

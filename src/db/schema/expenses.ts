@@ -60,7 +60,7 @@ export const expenses = pgTable("expenses", {
 
   merchant: text("merchant"),
 
-  category: expenseCategoryEnum("category"),
+  category: expenseCategoryEnum("category").notNull(),
 
   description: text("description"),
 
