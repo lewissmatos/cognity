@@ -23,17 +23,12 @@ services:
       EXCHANGE_RATE_API: ${EXCHANGE_RATE_API:-https://v6.exchangerate-api.com/v6}
       EXCHANGE_RATE_API_KEY: ${EXCHANGE_RATE_API_KEY}
 
-      GMAIL_MCP_KEYS_PATH: /app/gcp-oauth.keys.json
-
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
     volumes:
       - ./mastra-data:/app/.mastra
       
-      - ./gcp-oauth.keys.json:/app/gcp-oauth.keys.json
-      - ~/.gmail-mcp:/root/.gmail-mcp
-
     restart: unless-stopped
 
   postgres:
