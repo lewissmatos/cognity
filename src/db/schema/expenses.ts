@@ -10,16 +10,16 @@ import {
 import { users } from "./users";
 
 export const expenseCategoryEnum = pgEnum("expense_category", [
-  "food",
-  "transport",
-  "shopping",
-  "entertainment",
-  "health",
-  "education",
-  "bills",
-  "travel",
-  "subscriptions",
-  "other",
+  "FOOD",
+  "TRANSPORT",
+  "SHOPPING",
+  "ENTERTAINMENT",
+  "HEALTH",
+  "EDUCATION",
+  "BILLS",
+  "TRAVEL",
+  "SUBSCRIPTIONS",
+  "OTHER",
 ]);
 
 export const expenses = pgTable("expenses", {

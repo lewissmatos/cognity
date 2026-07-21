@@ -1,2 +1,0 @@
-ALTER TABLE "users" ADD COLUMN "chat_version" bigint DEFAULT 1 NOT NULL;--> statement-breakpoint
-ALTER TABLE "users" ADD COLUMN "full_name" text GENERATED ALWAYS AS ("users"."first_name" || ' ' || "users"."last_name") STORED;

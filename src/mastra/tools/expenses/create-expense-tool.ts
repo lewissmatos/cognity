@@ -24,7 +24,7 @@ export const expenseSchema = z.object({
 
   category: z
     .enum(expenseCategoryEnum.enumValues)
-    .optional()
+    .default("OTHER")
     .describe("The category of the expense."),
 
   description: z

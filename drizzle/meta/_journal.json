@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1784250179684,
-      "tag": "0000_dry_mandroid",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1784338774691,
-      "tag": "0001_handy_boomerang",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1784474647260,
-      "tag": "0002_shallow_shard",
+      "when": 1784608657457,
+      "tag": "0000_lonely_bloodaxe",
       "breakpoints": true
     }
   ]
