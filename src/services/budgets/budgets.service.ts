@@ -53,7 +53,9 @@ export class BudgetService {
   }
 
   async getBudgetByMainInput(
-    filters: Required<Pick<CreateBudgetInput, "userId" | "category" | "period">>,
+    filters: Required<
+      Pick<CreateBudgetInput, "userId" | "category" | "period">
+    >,
   ) {
     try {
       const budget = await db.query.budgets.findFirst({
@@ -113,22 +115,14 @@ export class BudgetService {
         return null;
       }
 
-      const today = new Date();
-      const currentMonthStartDate = today;
-      currentMonthStartDate.setDate(1);
-      currentMonthStartDate.setHours(0, 0, 0, 0);
-
-      const currentMonthEndDate = today;
-      currentMonthEndDate.setMonth(currentMonthEndDate.getMonth() + 1);
-      currentMonthEndDate.setDate(0);
-      currentMonthEndDate.setHours(23, 59, 59, 999);
+      const { startDate, endDate } = getRanges(budget.period);
 
       const expenses = await expenseService.getExpenses({
         userId,
         query: {
-          category: query?.category,
-          startDate: currentMonthStartDate,
-          endDate: currentMonthEndDate,
+          category: budget?.category,
+          startDate,
+          endDate,
         },
         size: 10000,
       });
@@ -163,5 +157,47 @@ export class BudgetService {
     }
   }
 }
+
+const getRanges = (period: (typeof budgets.$inferSelect)["period"]) => {
+  const today = new Date();
+  let startDate: Date;
+  let endDate: Date;
+
+  switch (period) {
+    case "WEEKLY":
+      startDate = new Date(today);
+      startDate.setDate(today.getDate() - today.getDay());
+      startDate.setHours(0, 0, 0, 0);
+
+      endDate = new Date(startDate);
+      endDate.setDate(startDate.getDate() + 6);
+      endDate.setHours(23, 59, 59, 999);
+      break;
+
+    case "MONTHLY":
+      startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+      startDate.setHours(0, 0, 0, 0);
+
+      endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+      endDate.setHours(23, 59, 59, 999);
+      break;
+
+    case "YEARLY":
+      startDate = new Date(today.getFullYear(), 0, 1);
+      startDate.setHours(0, 0, 0, 0);
+
+      endDate = new Date(today.getFullYear(), 11, 31);
+      endDate.setHours(23, 59, 59, 999);
+      break;
+
+    default:
+       startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+      startDate.setHours(0, 0, 0, 0);
+
+      endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+      endDate.setHours(23, 59, 59, 999);
+  }
+  return { startDate, endDate };
+};
 
 export const budgetService = new BudgetService();

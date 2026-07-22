@@ -3,7 +3,7 @@ import {
   agenticToolInputSchema,
   agenticToolOutputSchema,
   executeAgenticTool,
-} from "../auxiliars/common";
+} from "../../auxiliaries/common";
 
 export const expenseAgenticTool = createTool({
   id: "expense-agent-tool",

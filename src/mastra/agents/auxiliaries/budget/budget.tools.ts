@@ -1,5 +1,9 @@
 import { createTool } from "@mastra/core/tools";
-import { agenticToolInputSchema, agenticToolOutputSchema, executeAgenticTool } from "../auxiliars/common";
+import {
+  agenticToolInputSchema,
+  agenticToolOutputSchema,
+  executeAgenticTool,
+} from "../../auxiliaries/common";
 
 export const budgetAgenticTool = createTool({
   id: "budget-agent-tool",
@@ -45,11 +49,11 @@ Do not use this for:
 
 This tool delegates the request to the specialized Budget Agent.
 `,
-  inputSchema:  agenticToolInputSchema.describe(
+  inputSchema: agenticToolInputSchema.describe(
     "The plain text user's budget-related request. User's budget message should be passed as input to this tool.",
   ),
   outputSchema: agenticToolOutputSchema,
   execute: async (input, context) => {
     return await executeAgenticTool(input, context, "budgetAgent");
-  }
+  },
 });

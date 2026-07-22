@@ -16,8 +16,9 @@ import {
 } from "./utils.ts";
 import type { ToolName } from "../../mastra/tools/types.ts";
 import { userService } from "@/services/users/user.service.ts";
-import { MastraModelOutput } from '@mastra/core/stream';
-import { MAX_AGENT_STEPS } from '../../mastra/agents/processors';
+import { MastraModelOutput } from "@mastra/core/stream";
+import { MAX_AGENT_STEPS } from "../../mastra/agents/processors";
+import { cogassyAgent } from "../../mastra/agents/router/cogassy/cogassy-agent.ts";
 
 if (!TELEGRAM_BOT_TOKEN) {
   throw new Error("TELEGRAM_BOT_TOKEN is required to run the Telegram bot");
@@ -67,8 +68,6 @@ async function processUpdate(update: TelegramUpdate): Promise<void> {
   const threadId = `telegram-chat-${chatId}-v${chatVersion}`;
   const resourceId = user?.id;
 
-  const cogassyAgent = mastra.getAgent("cogassyAgent");
-
   try {
     const memory = {
       thread: {
@@ -77,7 +76,7 @@ async function processUpdate(update: TelegramUpdate): Promise<void> {
       },
       resource: resourceId,
     };
-    
+
     const stream = await cogassyAgent.stream(prompt, {
       memory,
       maxSteps: MAX_AGENT_STEPS,
@@ -291,10 +290,4 @@ async function trackTools(
   await flushReasoningSummaryBlock();
 }
 
-if (process.env.TELEGRAM_BOOTSTRAP_ONLY === "1") {
-  process.stdout.write(
-    `${new Date().toISOString()} - Telegram bot bootstrap check completed\n`,
-  );
-} else {
-  await pollTelegramUpdates();
-}
+await pollTelegramUpdates();

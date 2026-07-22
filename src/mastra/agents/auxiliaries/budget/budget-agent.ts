@@ -2,14 +2,16 @@ import { Agent } from "@mastra/core/agent";
 import { Memory } from "@mastra/memory";
 import { defaultModel } from "@/constants";
 import {
+    AgentActionLoggerProcessor,
   EnsureTelegramFinalResponseProcessor,
+  IncomingMessageLoggerProcessor,
   MAX_AGENT_STEPS,
-} from "../processors";
-import { deleteBudgetTool } from "../../tools/budgets/delete-budget-tool";
-import { checkBudgetSpendingStatusTool } from "../../tools/budgets/check-budget-spending-status-tool";
-import { getBudgetsTool } from "../../tools/budgets/get-budgets-tool";
-import { updateBudgetTool } from "../../tools/budgets/update-budget-tool";
-import { createBudgetTool } from "../../tools/budgets/create-budget-tool";
+} from "../../processors";
+import { deleteBudgetTool } from "../../../tools/budgets/delete-budget-tool";
+import { checkBudgetSpendingStatusTool } from "../../../tools/budgets/check-budget-spending-status-tool";
+import { getBudgetsTool } from "../../../tools/budgets/get-budgets-tool";
+import { updateBudgetTool } from "../../../tools/budgets/update-budget-tool";
+import { createBudgetTool } from "../../../tools/budgets/create-budget-tool";
 
 const budgetAgentInstructions = `
 You are the Budget Manager for Cogassy.
@@ -224,5 +226,9 @@ Examples:
       },
     },
   }),
-  inputProcessors: [new EnsureTelegramFinalResponseProcessor(MAX_AGENT_STEPS)],
+  inputProcessors: [
+    new IncomingMessageLoggerProcessor(),
+    new AgentActionLoggerProcessor(),
+    new EnsureTelegramFinalResponseProcessor(MAX_AGENT_STEPS),
+  ],
 });

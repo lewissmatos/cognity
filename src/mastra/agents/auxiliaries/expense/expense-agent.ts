@@ -1,16 +1,18 @@
 import { Agent } from "@mastra/core/agent";
 import { Memory } from "@mastra/memory";
 import { defaultModel } from "@/constants";
-import { createExpenseTool } from "../../tools/expenses/create-expense-tool";
-import { getExpensesTool } from "../../tools/expenses/get-expenses-tool";
-import { getSingleExpenseTool } from "../../tools/expenses/get-single-expense-tool";
-import { deleteExpenseTool } from "../../tools/expenses/delete-expense-tool";
-import { updateExpenseTool } from "../../tools/expenses/update-expense-tool";
-import { findSimilarProductsTool } from "../../tools/search/find-similar-product-tools";
+import { createExpenseTool } from "../../../tools/expenses/create-expense-tool";
+import { getExpensesTool } from "../../../tools/expenses/get-expenses-tool";
+import { getSingleExpenseTool } from "../../../tools/expenses/get-single-expense-tool";
+import { deleteExpenseTool } from "../../../tools/expenses/delete-expense-tool";
+import { updateExpenseTool } from "../../../tools/expenses/update-expense-tool";
 import {
+  AgentActionLoggerProcessor,
   EnsureTelegramFinalResponseProcessor,
+  IncomingMessageLoggerProcessor,
   MAX_AGENT_STEPS,
-} from "../processors";
+} from "../../processors";
+import { z } from "zod";
 
 const expenseAgentInstructions = `
 You are the Expense Manager for Cogassy.
@@ -208,6 +210,14 @@ Examples:
   instructions: expenseAgentInstructions,
   tools: {
     createExpenseTool,
+    // createExpenseTool: withToolNotification(
+    //     createExpenseTool,
+    //     notifier,
+    //     {
+    //       start: "🧾 Adding expense...",
+    //       success: "✅ Expense added",
+    //     },
+    //   ),
     getExpensesTool,
     getSingleExpenseTool,
     deleteExpenseTool,
@@ -222,5 +232,9 @@ Examples:
       },
     },
   }),
-  inputProcessors: [new EnsureTelegramFinalResponseProcessor(MAX_AGENT_STEPS)],
+  inputProcessors: [
+    new IncomingMessageLoggerProcessor(),
+    new AgentActionLoggerProcessor(),
+    new EnsureTelegramFinalResponseProcessor(MAX_AGENT_STEPS),
+  ],
 });

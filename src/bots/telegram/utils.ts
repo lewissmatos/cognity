@@ -1,7 +1,6 @@
 import { TELEGRAM_API_BASE, TELEGRAM_PARSE_MODE } from "./constants.ts";
 import type { StreamToolEvent, TelegramUpdate } from "./types.ts";
-import type { ToolName } from "../../mastra/tools/types.ts";
-import { userService } from "@/services/users/user.service.ts";
+import type {  ToolName } from "../../mastra/tools/types.ts";
 
 function normalizeMarkdownForTelegram(text: string): string {
   const normalizedText = text.replace(/\r\n?/g, "\n").trim();
@@ -85,8 +84,16 @@ async function sendTelegramMessage(
   );
 }
 
-const toToolStartMessage = (toolName: ToolName): string =>
-  `I’m using *${toolName}* to process your request…`;
+const toToolStartMessage = (toolName: ToolName): string => {
+  const toolMessages: Record<ToolName, string> = {
+    expenseAgenticTool: "🧾 Managing your expenses...",
+    budgetAgenticTool: "📊 Checking your budget...",
+  };
+
+  return (
+    toolMessages[toolName] || `I’m using *${toolName}* to process your request…`
+  );
+};
 
 const toToolDoneMessage = (toolName: ToolName): string =>
   `Finished *${toolName}*. I’m now preparing your answer.`;

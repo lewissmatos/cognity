@@ -9,10 +9,10 @@ import {
   MastraPlatformExporter,
   SensitiveDataFilter,
 } from "@mastra/observability";
-import { summarizeReasoningAgent } from "./agents/auxiliars/summarize-reasoning-agent.ts";
-import { expenseAgent } from "./agents/expense/expense-agent.ts";
-import { budgetAgent } from "./agents/budget/budget-agent.ts";
+import { summarizeReasoningAgent } from "./agents/auxiliaries/summarize-reasoning-agent.ts";
 import { cogassyAgent } from "./agents/router/cogassy/cogassy-agent.ts";
+import { expenseAgent } from "./agents/auxiliaries/expense/expense-agent.ts";
+import { budgetAgent } from "./agents/auxiliaries/budget/budget-agent.ts";
 
 const storagePath =
   process.env.MASTRA_STORAGE_PATH ?? "./mastra-data/mastra.db";
@@ -20,7 +20,7 @@ const storagePath =
 export const mastra = new Mastra({
   workflows: {},
   tools: {},
-  agents: { cogassyAgent, summarizeReasoningAgent,expenseAgent, budgetAgent },
+  agents: { cogassyAgent, summarizeReasoningAgent, expenseAgent, budgetAgent },
   storage: new MastraCompositeStore({
     id: "composite-storage",
     default: new LibSQLStore({

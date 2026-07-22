@@ -1,11 +1,4 @@
 type ToolName =
-  | "tavilySearchTool"
-  | "createExpenseTool"
-  | "getExpensesTool"
-  | "getSingleExpenseTool"
-  | "updateExpenseTool"
-  | "deleteExpenseTool"
-  | "findSimilarProductsTool"
-  | (string & {});
+   "expenseAgenticTool" | "budgetAgenticTool" | (string & {});
 
 export type { ToolName };
